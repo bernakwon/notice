@@ -1,0 +1,41 @@
+spring:
+  h2:
+    console:
+      enabled: true
+
+  datasource:
+    url: jdbc:h2:mem:ran2;DB_CLOSE_ON_EXIT=FALSE;
+    username : sa
+    password : sa1234
+    driverClassName : org.h2.Driver
+    hikari:
+      maximum-pool-size: 40
+  jpa :
+    hibernate:
+      ddl-auto : update
+    show-sql: false
+    open-in-view: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+logging:
+  level:
+    root: info
+server:
+  port: 8080
+  error:
+   include-exception: false
+   include-message: always
+   include-stacktrace: on_param
+   whitelabel.enabled: false
+springdoc:
+  packages-to-scan: com.marketboro.membership
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  swagger-ui:
+    path: /
+    disable-swagger-default-url: true
+    display-request-duration: true
+    operations-sorter: alpha

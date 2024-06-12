@@ -1,4 +1,4 @@
-package com.berna.rantemplate.global.error;
+package com.berna.notice.global.error;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

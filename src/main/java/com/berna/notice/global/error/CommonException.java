@@ -1,4 +1,4 @@
-package com.berna.rantemplate.global.error;
+package com.berna.notice.global.error;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,6 +6,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class CommonException extends RuntimeException{
+public class CommonException extends RuntimeException {
     private final ErrorCode errorCode;
 }

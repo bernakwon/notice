@@ -1,4 +1,4 @@
-package com.berna.rantemplate.global.error;
+package com.berna.notice.global.error;
 
 
 import org.springframework.http.HttpStatus;
@@ -14,15 +14,15 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleException(CommonException e) {
         e.getStackTrace();
         return ErrorResponse.builder()
-                        .code(e.getErrorCode().getHttpStatus().value())
-                        .message(e.getErrorCode().getHttpStatus().getReasonPhrase()).build();
+                .code(e.getErrorCode().getHttpStatus().value())
+                .message(e.getErrorCode().getHttpStatus().getReasonPhrase()).build();
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ErrorResponse handleNoHandlerFound(CommonException e) {
         e.getStackTrace();
         return ErrorResponse.builder()
-                        .code(HttpStatus.NOT_FOUND.value())
-                        .message(HttpStatus.NOT_FOUND.getReasonPhrase()).build();
+                .code(HttpStatus.NOT_FOUND.value())
+                .message(HttpStatus.NOT_FOUND.getReasonPhrase()).build();
     }
 }

@@ -1,6 +1,6 @@
-package com.berna.rantemplate.global.common;
+package com.berna.notice.global.common;
 
-import com.berna.rantemplate.global.error.ErrorResponse;
+import com.berna.notice.global.error.ErrorResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -21,24 +21,24 @@ public class CommonResponseHandler implements ResponseBodyAdvice<Object> {
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
 
-       // Swagger 제외
-       if(body instanceof TreeMap|| request.getURI().getPath().equals("/v3/api-docs")){
+        // Swagger 제외
+        if (body instanceof TreeMap || request.getURI().getPath().equals("/v3/api-docs")) {
 
-           return body;
-       }
-       //Error는 Error정보를 담아 return
-       else if (body instanceof ErrorResponse) {
-           ErrorResponse errorResponse = (ErrorResponse) body;
-           return CommonResponse.builder()
-                   .result(false)
-                   .error(errorResponse)
-                   .build();
-       }else {
+            return body;
+        }
+        //Error는 Error정보를 담아 return
+        else if (body instanceof ErrorResponse) {
+            ErrorResponse errorResponse = (ErrorResponse) body;
+            return CommonResponse.builder()
+                    .result(false)
+                    .error(errorResponse)
+                    .build();
+        } else {
 
-           return CommonResponse.builder()
-                   .result(true)
-                   .data(body)
-                   .build();
-       }
+            return CommonResponse.builder()
+                    .result(true)
+                    .data(body)
+                    .build();
+        }
     }
 }

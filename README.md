@@ -1,5 +1,5 @@
-Template
-programed By hrkwon 
+공지사항 API
+programed By Hyeran 
 ==================================
 ## Spec
 - Spring boot 3.1.2
@@ -11,23 +11,20 @@ programed By hrkwon
 --------------------------------------------
 ## build Method
 
-     git clone https://github.com/bernakwon/membership.git
+     git clone https://github.com/bernakwon/notice.git
 
 #### Run
-    - RanTemplateApplication.main() Run
+    - NoticeApplication.main() Run
     - 포트 설정을 8080으로 해두었기 때문에 localhost:8080으로 접속해야한다.
-    - Querydsl 중복생성 오류가 발생하면 
-     1)intelliJ->setting -> build tools -> gradle : gradle -> intellj로 변경
-     2)gradle clean후 다시 Run
+
 --------------------------------------------
 ## 요구사항과 개발전략
 
  ### 요구사항 
-    1.
-    2.
-    3.
-    4.
-    5.
+    1. 공지사항 등록(첨부 여러개)
+    2. 공지사항 수정(첨부 여러개)
+    3. 공지사항 삭제
+    4. 공지사항 조회
 -------------------------------------------
 
   #### DB
@@ -39,7 +36,7 @@ programed By hrkwon
      1. 확인이 쉽도록 h2 내장 데이터베이스 사용.
      2. POJO 사용 
      3. 기본 JPARepository가 제공하는 Paging 활용 
-     4.  version 추가하여 동시성 제어
+     4. version 추가하여 동시성 제어
      5. 
 
      

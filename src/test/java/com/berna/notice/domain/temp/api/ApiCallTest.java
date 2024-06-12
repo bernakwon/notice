@@ -1,4 +1,4 @@
-package com.berna.rantemplate.domain.temp.api;
+package com.berna.notice.domain.temp.api;
 
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;

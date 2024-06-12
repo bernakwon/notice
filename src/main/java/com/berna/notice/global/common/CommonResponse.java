@@ -1,6 +1,6 @@
-package com.berna.rantemplate.global.common;
+package com.berna.notice.global.common;
 
-import com.berna.rantemplate.global.error.ErrorResponse;
+import com.berna.notice.global.error.ErrorResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

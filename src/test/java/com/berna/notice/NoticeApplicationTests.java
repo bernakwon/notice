@@ -1,10 +1,10 @@
-package com.berna.rantemplate;
+package com.berna.notice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class RanTemplateApplicationTests {
+class NoticeApplicationTests {
 
     @Test
     void contextLoads() {

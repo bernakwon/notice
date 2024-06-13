@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -33,8 +34,11 @@ public class Notice {
     @CreationTimestamp
     private LocalDateTime createdDate;
 
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<NoticeAttachment> attachments;
+
+
     //조회수 증가
-    @Transactional
     public void increaseViewCount() {
         this.viewCount++;
     }

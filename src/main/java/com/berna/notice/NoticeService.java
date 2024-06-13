@@ -30,6 +30,15 @@ public class NoticeService {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Notice not found with id: " + id));
         notice.increaseViewCount();
-        return noticeMapper.toResponseDto(notice);
+        Notice saveNotice = noticeRepository.save(notice);
+        return noticeMapper.toResponseDto(saveNotice);
     }
+
+    @Transactional
+    public Notice saveOrUpdateNotice(NoticeDto noticeDto) {
+        Notice notice = noticeMapper.toEntity(noticeDto);
+        notice.getAttachments().forEach(attachment -> attachment.setNotice(notice));
+        return noticeRepository.save(notice);
+    }
+
 }

@@ -21,5 +21,14 @@ public class NoticeController {
         return noticeService.getNoticeById(id);
     }
 
+    @PostMapping
+    public Notice createNotice(@ModelAttribute NoticeDto noticeDto) {
+        return noticeService.saveOrUpdateNotice(noticeDto);
+    }
 
+    @PutMapping("/{id}")
+    public Notice updateNotice(@PathVariable Long id, @ModelAttribute NoticeDto noticeDto) {
+        noticeDto.setId(id);
+        return noticeService.saveOrUpdateNotice(noticeDto);
+    }
 }

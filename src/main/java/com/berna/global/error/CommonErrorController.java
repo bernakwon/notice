@@ -1,4 +1,4 @@
-package com.berna.notice.global.error;
+package com.berna.global.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.web.servlet.error.AbstractErrorController;

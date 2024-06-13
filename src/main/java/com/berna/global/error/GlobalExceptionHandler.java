@@ -1,4 +1,4 @@
-package com.berna.notice.global.error;
+package com.berna.global.error;
 
 
 import org.springframework.http.HttpStatus;

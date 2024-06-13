@@ -1,6 +1,6 @@
-package com.berna.notice.global.common;
+package com.berna.global.common;
 
-import com.berna.notice.global.error.ErrorResponse;
+import com.berna.global.error.ErrorResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;

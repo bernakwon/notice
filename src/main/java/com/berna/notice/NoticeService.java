@@ -1,5 +1,6 @@
 package com.berna.notice;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,11 +27,9 @@ public class NoticeService {
 
     @Transactional
     public NoticeResponseDto getNoticeById(Long id) {
-        Notice notice = noticeRepository.findById(id).orElse(null);
-        if (notice != null) {
-            notice.increaseViewCount(); // 조회수 증가
-            return noticeMapper.toResponseDto(notice);
-        }
-        return null;
+        Notice notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Notice not found with id: " + id));
+        notice.increaseViewCount();
+        return noticeMapper.toResponseDto(notice);
     }
 }

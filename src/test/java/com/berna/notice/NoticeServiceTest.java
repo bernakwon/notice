@@ -8,17 +8,18 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 public class NoticeServiceTest {
 
     @Mock
@@ -42,6 +43,7 @@ public class NoticeServiceTest {
         notice.setId(1L);
         notice.setTitle("Test Title");
         notice.setContent("Test Content");
+        notice.setViewCount(0);
 
         noticeDto = new NoticeDto();
         noticeDto.setTitle("Test Title");
@@ -59,7 +61,7 @@ public class NoticeServiceTest {
         NoticeResponseDto result = noticeService.getNoticeById(1L);
 
         // 조회수가 1 증가했는지 확인
-        assertThat(result.getViewCount()).isEqualTo(1);
+        assertThat(notice.getViewCount()).isEqualTo(1);
         // 서비스가 올바른 DTO를 반환하는지 확인
         assertThat(result).isNotNull();
         // Repository 메서드가 정확히 1회 호출되었는지 확인

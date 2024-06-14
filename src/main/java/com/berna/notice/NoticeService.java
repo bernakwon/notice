@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service
+
 @RequiredArgsConstructor
+@Service
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
@@ -27,17 +28,24 @@ public class NoticeService {
 
     @Transactional
     public NoticeResponseDto getNoticeById(Long id) {
+
         Notice notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Notice not found with id: " + id));
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Notice not found with id: " + id));
+
         notice.increaseViewCount();
-        Notice saveNotice = noticeRepository.save(notice);
-        return noticeMapper.toResponseDto(saveNotice);
+        noticeRepository.save(notice); // 조회수 증가 후 저장
+        return noticeMapper.toResponseDto(notice);
     }
 
     @Transactional
     public Notice saveOrUpdateNotice(NoticeDto noticeDto) {
         Notice notice = noticeMapper.toEntity(noticeDto);
-        notice.getAttachments().forEach(attachment -> attachment.setNotice(notice));
+        if(notice.getId() != null) {
+            Notice originalNotice = noticeRepository.findById(notice.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Notice not found with id: " + notice.getId()));
+            notice.setAttachments(originalNotice.getAttachments());
+        }
+
         return noticeRepository.save(notice);
     }
 

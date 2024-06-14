@@ -26,7 +26,7 @@ public class Notice {
 
 
     @Column(name = "view_count")
-    private int viewCount;
+    private int viewCount =0;
 
 
     private String author;
@@ -39,7 +39,7 @@ public class Notice {
 
 
     //조회수 증가
-    public void increaseViewCount() {
+    public void increaseViewCount(){
         this.viewCount++;
     }
 }

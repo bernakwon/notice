@@ -52,7 +52,7 @@ public class NoticeController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청",
                     content = @Content)})
     @PostMapping
-    public Notice createNotice(@RequestBody NoticeDto noticeDto) {
+    public Notice createNotice(@ModelAttribute NoticeDto noticeDto) {
         return noticeService.saveOrUpdateNotice(noticeDto);
     }
 
@@ -64,8 +64,15 @@ public class NoticeController {
             @ApiResponse(responseCode = "404", description = "공지사항을 찾을 수 없음",
                     content = @Content)})
     @PutMapping("/{id}")
-    public Notice updateNotice(@PathVariable Long id, @RequestBody NoticeDto noticeDto) {
+    public Notice updateNotice(@PathVariable Long id, @ModelAttribute NoticeDto noticeDto) {
         noticeDto.setId(id);
         return noticeService.saveOrUpdateNotice(noticeDto);
     }
+
+    @Operation(summary = "공지사항 삭제", description = "ID로 기존 공지사항을 삭제합니다.")
+    @DeleteMapping("/{id}")
+    public void deleteNotice(@PathVariable Long id) {
+        noticeService.deleteNotice(id);
+    }
+
 }

@@ -1,13 +1,16 @@
-package com.berna.notice;
+package com.berna.notice.service;
 
-import jakarta.persistence.EntityNotFoundException;
+import com.berna.notice.service.mapper.NoticeMapper;
+import com.berna.notice.repository.NoticeRepository;
+import com.berna.notice.dto.NoticeDto;
+import com.berna.notice.dto.NoticeResponseDto;
+import com.berna.notice.model.Notice;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -32,21 +35,23 @@ public class NoticeService {
         Notice notice = noticeRepository.findById(id)
                 .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Notice not found with id: " + id));
 
-        notice.increaseViewCount();
+        notice.setViewCount(notice.getViewCount() + 1);
         noticeRepository.save(notice); // 조회수 증가 후 저장
         return noticeMapper.toResponseDto(notice);
     }
 
     @Transactional
     public Notice saveOrUpdateNotice(NoticeDto noticeDto) {
-        Notice notice = noticeMapper.toEntity(noticeDto);
-        if(notice.getId() != null) {
-            Notice originalNotice = noticeRepository.findById(notice.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Notice not found with id: " + notice.getId()));
-            notice.setAttachments(originalNotice.getAttachments());
+
+        Optional<Notice> targetNotice = noticeRepository.findById(noticeDto.getId());
+        if(targetNotice.isPresent()){
+            Long targetNoticeId = targetNotice.get().getId();
+            noticeDto.setId(targetNoticeId);
         }
 
-        return noticeRepository.save(notice);
+        Notice result = noticeMapper.toEntity(noticeDto);;
+
+        return noticeRepository.save(result);
     }
 
 }

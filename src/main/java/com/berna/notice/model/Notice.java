@@ -40,6 +40,10 @@ public class Notice {
     @CreationTimestamp
     private LocalDateTime createdDate;
 
+
+    @Version
+    private int version;
+
     @Schema(description = "첨부파일 목록")
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<NoticeAttachment> attachments;

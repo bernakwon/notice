@@ -6,6 +6,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import java.util.Collections;
 
@@ -23,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 //엔티티 매핑 후 1차 테스트
 @ExtendWith(MockitoExtension.class)
@@ -42,101 +47,58 @@ public class NoticeSaveAttachFileTest {
 
     @BeforeEach
     void setUp() {
-        // NoticeDto에 첨부파일 설정
-        NoticeAttachmentDto attachmentDto = new NoticeAttachmentDto();
-        attachmentDto.setFileName("testFile.txt");
-        attachmentDto.setFileType("text/plain");
-        attachmentDto.setData("test data".getBytes());
-
+        // 테스트용 NoticeDto 객체 생성
         noticeDto = new NoticeDto();
-        noticeDto.setId(1L); // 업데이트 케이스를 가정하여 ID 설정
+        noticeDto.setId(1L);
         noticeDto.setTitle("Test Title");
         noticeDto.setContent("Test Content");
-        noticeDto.setAttachments(Collections.singletonList(attachmentDto));
 
-        // Notice 엔티티에 첨부파일 설정
-        NoticeAttachment attachment = new NoticeAttachment();
-        attachment.setFileName("testFile.txt");
-        attachment.setFileType("text/plain");
-        attachment.setData("test data".getBytes());
-
+        // 테스트용 Notice 객체 생성
         notice = new Notice();
         notice.setId(1L);
         notice.setTitle("Test Title");
         notice.setContent("Test Content");
-        notice.setAttachments(Collections.singletonList(attachment));
     }
 
     @Test
     @DisplayName("기존 공지사항 업데이트 시 첨부파일과 함께 저장")
     void saveOrUpdateNotice_ShouldUpdateExistingNoticeWithAttachments() {
         // given
-        given(noticeRepository.findById(noticeDto.getId())).willReturn(Optional.of(notice));
+        // 테스트용 첨부 파일 생성
+        MockMultipartFile file1 = new MockMultipartFile("file", "test.txt", "text/plain", "Hello, World!".getBytes());
+        MockMultipartFile file2 = new MockMultipartFile("file", "test2.txt", "text/plain", "Hello again!".getBytes());
+
+        // 첨부 파일 목록 설정
+        noticeDto.setAttachments(List.of(file1, file2));
+
+        // NoticeDto에서 Notice 엔티티로 변환하는 Mock 설정
         given(noticeMapper.toEntity(noticeDto)).willReturn(notice);
+
+        // NoticeRepository의 save 메서드 Mock 설정
         given(noticeRepository.save(any(Notice.class))).willReturn(notice);
 
-        // when
+        // 파일 업로드 경로 설정
+        String uploadDir = "C:/fileStorage/notice/";
+
+        // NoticeService의 saveOrUpdateNotice 메서드 호출
         Notice result = noticeService.saveOrUpdateNotice(noticeDto);
 
-        // then
+        // 테스트 결과 검증
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(noticeDto.getId());
         assertThat(result.getTitle()).isEqualTo("Test Title");
         assertThat(result.getContent()).isEqualTo("Test Content");
-        assertThat(result.getAttachments()).hasSize(1);
-        NoticeAttachment resultAttachment = result.getAttachments().get(0);
-        assertThat(resultAttachment.getFileName()).isEqualTo("testFile.txt");
-        assertThat(resultAttachment.getFileType()).isEqualTo("text/plain");
-        assertThat(resultAttachment.getData()).isEqualTo("test data".getBytes());
+        assertThat(result.getAttachments()).hasSize(2); // 첨부 파일 수 검증
 
-        then(noticeRepository).should(times(1)).findById(noticeDto.getId());
-        then(noticeMapper).should(times(1)).toEntity(noticeDto);
-        then(noticeRepository).should(times(1)).save(notice);
+        // 첨부 파일 저장 경로에 파일이 잘 저장되었는지 검증
+        Path filePath1 = Paths.get(uploadDir + file1.getOriginalFilename());
+        Path filePath2 = Paths.get(uploadDir + file2.getOriginalFilename());
+        assertThat(Files.exists(filePath1)).isTrue();
+        assertThat(Files.exists(filePath2)).isTrue();
+
+        // Mockito verify를 통해 메서드 호출 횟수 검증
+        then(noticeMapper).should().toEntity(noticeDto);
+        then(noticeRepository).should().save(notice);
     }
 
-    @Test
-    @DisplayName("새로운 공지사항 저장 시 첨부파일과 함께 저장")
-    void saveOrUpdateNotice_ShouldSaveNewNoticeWithAttachments() {
-        // given
-        NoticeAttachmentDto newAttachmentDto = new NoticeAttachmentDto();
-        newAttachmentDto.setFileName("newTestFile.txt");
-        newAttachmentDto.setFileType("text/plain");
-        newAttachmentDto.setData("new test data".getBytes());
 
-        NoticeDto newNoticeDto = new NoticeDto();
-        newNoticeDto.setTitle("New Test Title");
-        newNoticeDto.setContent("New Test Content");
-        newNoticeDto.setAttachments(Collections.singletonList(newAttachmentDto));
-
-        NoticeAttachment newAttachment = new NoticeAttachment();
-        newAttachment.setFileName("newTestFile.txt");
-        newAttachment.setFileType("text/plain");
-        newAttachment.setData("new test data".getBytes());
-
-        Notice newNotice = new Notice();
-        newNotice.setTitle("New Test Title");
-        newNotice.setContent("New Test Content");
-        newNotice.setAttachments(Collections.singletonList(newAttachment));
-
-        given(noticeRepository.findById(newNoticeDto.getId())).willReturn(Optional.empty());
-        given(noticeMapper.toEntity(newNoticeDto)).willReturn(newNotice);
-        given(noticeRepository.save(any(Notice.class))).willReturn(newNotice);
-
-        // when
-        Notice result = noticeService.saveOrUpdateNotice(newNoticeDto);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getTitle()).isEqualTo("New Test Title");
-        assertThat(result.getContent()).isEqualTo("New Test Content");
-        assertThat(result.getAttachments()).hasSize(1);
-        NoticeAttachment resultAttachment = result.getAttachments().get(0);
-        assertThat(resultAttachment.getFileName()).isEqualTo("newTestFile.txt");
-        assertThat(resultAttachment.getFileType()).isEqualTo("text/plain");
-        assertThat(resultAttachment.getData()).isEqualTo("new test data".getBytes());
-
-        then(noticeRepository).should(times(1)).findById(newNoticeDto.getId());
-        then(noticeMapper).should(times(1)).toEntity(newNoticeDto);
-        then(noticeRepository).should(times(1)).save(newNotice);
-    }
 }

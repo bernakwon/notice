@@ -2,6 +2,7 @@ package com.berna.notice.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -23,8 +24,11 @@ public class NoticeDto {
     @Schema(description = "종료일시", example = "2024-06-17T10:00:00")
     private String endDate;
 
+    @Schema(description = "작성자", example = "관리자")
+    private String author;
+
     @Schema(description = "첨부파일 목록")
-    private List<NoticeAttachmentDto> attachments;
+    private List<MultipartFile> attachments;
 
 
 }

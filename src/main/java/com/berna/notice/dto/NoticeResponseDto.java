@@ -1,11 +1,15 @@
 package com.berna.notice.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class NoticeResponseDto {
 
     @Schema(description = "공지사항 ID", example = "1")
@@ -25,4 +29,5 @@ public class NoticeResponseDto {
 
     @Schema(description = "작성자", example = "관리자")
     private String author;
+
 }

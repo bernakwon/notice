@@ -72,7 +72,7 @@ public class NoticeController {
     @Operation(summary = "공지사항 삭제", description = "ID로 기존 공지사항을 삭제합니다.")
     @DeleteMapping("/{id}")
     public void deleteNotice(@PathVariable Long id) {
-        noticeService.deleteNotice(id);
+        noticeService.deleteNoticeById(id);
     }
 
 }

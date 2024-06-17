@@ -1,5 +1,6 @@
 package com.berna.notice.service;
 
+import com.berna.notice.model.NoticeAttachment;
 import com.berna.notice.service.mapper.NoticeMapper;
 import com.berna.notice.repository.NoticeRepository;
 import com.berna.notice.dto.NoticeDto;
@@ -9,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,6 +26,8 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
 
     private final NoticeMapper noticeMapper;
+
+    private final String fileStorageLocation = "C:\\fileStorage\\notice";
 
     @Transactional(readOnly = true)
     public List<NoticeResponseDto> getAllNotices() {
@@ -49,17 +56,43 @@ public class NoticeService {
             noticeDto.setId(targetNoticeId);
         }
 
-        Notice result = noticeMapper.toEntity(noticeDto);;
-
-        return noticeRepository.save(result);
+        Notice notice = noticeMapper.toEntity(noticeDto);;
+        saveAttachments(notice);
+        return noticeRepository.save(notice);
     }
 
 
     @Transactional
-    public void deleteNotice(Long id) {
-        noticeRepository.deleteById(id);
-
+    public void deleteNoticeById(Long id) {
+        Optional<Notice> noticeOptional = noticeRepository.findById(id);
+        if (noticeOptional.isPresent()) {
+            Notice notice = noticeOptional.get();
+            deleteAttachments(notice.getAttachments());
+            noticeRepository.delete(notice);
+        } else {
+            throw new RuntimeException("공지사항을 찾을 수 없습니다.");
+        }
     }
-
+    private void saveAttachments(Notice notice) {
+        for (NoticeAttachment attachment : notice.getAttachments()) {
+            try {
+                byte[] fileData = attachment.getData();
+                Path filePath = Paths.get(fileStorageLocation, attachment.getFileName());
+                Files.write(filePath, fileData);
+                attachment.setFilePath(filePath.toString());
+            } catch (IOException e) {
+                throw new RuntimeException("파일 저장 실패", e);
+            }
+        }
+    }
+    private void deleteAttachments(List<NoticeAttachment> attachments) {
+        for (NoticeAttachment attachment : attachments) {
+            try {
+                Files.deleteIfExists(Paths.get(attachment.getFilePath()));
+            } catch (IOException e) {
+                throw new RuntimeException("파일 삭제 실패", e);
+            }
+        }
+    }
 
 }

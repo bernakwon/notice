@@ -21,6 +21,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
+//첨부파일 없이 저장
 @ExtendWith(MockitoExtension.class)
 public class NoticeSaveTest {
 

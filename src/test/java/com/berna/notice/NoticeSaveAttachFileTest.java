@@ -24,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+//엔티티 매핑 후 1차 테스트
 @ExtendWith(MockitoExtension.class)
 public class NoticeSaveAttachFileTest {
 

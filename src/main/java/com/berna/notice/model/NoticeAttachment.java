@@ -3,6 +3,10 @@ package com.berna.notice.model;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -19,6 +23,9 @@ public class NoticeAttachment {
     @Schema(description = "파일 타입", example = "application/pdf")
     private String fileType;
 
+    @Schema(description = "파일 경로", example = "D:/example/")
+    private String filePath;
+
     @Schema(description = "파일 데이터")
     private byte[] data;
 
@@ -27,5 +34,9 @@ public class NoticeAttachment {
     @JoinColumn(name = "notice_id")
     private Notice notice;
 
+    @CreationTimestamp
+    private LocalDateTime createdDate;
 
+    @UpdateTimestamp
+    private LocalDateTime updatedDate;
 }

@@ -15,12 +15,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,12 +51,13 @@ public class NoticeSaveDeleteAttachFileTest {
         noticeDto.setId(1L);
         noticeDto.setTitle("Test Title");
         noticeDto.setContent("Test Content");
+        MockMultipartFile file1 = new MockMultipartFile("file", "test.txt", "text/plain", "Hello, World!".getBytes());
+        MockMultipartFile file2 = new MockMultipartFile("file", "test2.txt", "text/plain", "Hello again!".getBytes());
 
-        NoticeAttachmentDto attachmentDto = new NoticeAttachmentDto();
-        attachmentDto.setFileName("test.txt");
-        attachmentDto.setFileType("text/plain");
-        attachmentDto.setData("some text".getBytes());
-        noticeDto.setAttachments(Collections.singletonList(attachmentDto));
+        // 첨부 파일 목록 설정
+        noticeDto.setAttachments(List.of(file1, file2));
+
+
 
         notice = new Notice();
         notice.setId(1L);

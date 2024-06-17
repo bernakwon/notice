@@ -27,6 +27,7 @@ public class NoticeAttachment {
     private String filePath;
 
     @Schema(description = "파일 데이터")
+    @Lob
     private byte[] data;
 
     @Schema(description = "공지사항 ID")

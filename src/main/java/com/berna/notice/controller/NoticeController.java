@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,8 +65,9 @@ public class NoticeController {
                             schema = @Schema(implementation = Notice.class))}),
             @ApiResponse(responseCode = "400", description = "잘못된 요청",
                     content = @Content)})
-    @PostMapping
-    public Notice createNotice(@RequestBody NoticeDto noticeDto) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Notice createNotice(@RequestPart("noticeDto") NoticeDto noticeDto,  @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+        noticeDto.setAttachments(files);
         return noticeService.saveOrUpdateNotice(noticeDto);
     }
 
@@ -76,9 +78,10 @@ public class NoticeController {
                             schema = @Schema(implementation = Notice.class))}),
             @ApiResponse(responseCode = "404", description = "공지사항을 찾을 수 없음",
                     content = @Content)})
-    @PutMapping("/{id}")
-    public Notice updateNotice(@PathVariable Long id, @RequestPart("noticeDto") NoticeDto noticeDto,  @RequestPart("files") List<MultipartFile> files) {
+    @PutMapping(value = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Notice updateNotice(@PathVariable Long id, @RequestPart("noticeDto") NoticeDto noticeDto,  @RequestPart(value = "files", required = false) List<MultipartFile> files) {
         noticeDto.setId(id);
+        noticeDto.setAttachments(files);
         return noticeService.saveOrUpdateNotice(noticeDto);
     }
 

@@ -1,5 +1,6 @@
 package com.berna.notice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -44,6 +45,7 @@ public class Notice {
     @Version
     private int version;
 
+    @JsonIgnore
     @Schema(description = "첨부파일 목록")
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<NoticeAttachment> attachments;

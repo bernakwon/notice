@@ -8,6 +8,7 @@ import com.berna.notice.dto.NoticeResponseDto;
 import com.berna.notice.model.Notice;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +33,7 @@ public class NoticeService {
 
     private final NoticeMapper noticeMapper;
 
-    private final String fileStorageLocation = "C:\\fileStorage\\notice";
+    private final String fileStorageLocation = "C:\\fileStorage\\notice\\";
 
 
     public Page<Notice> getAllNotices(PageRequest pageRequest) {
@@ -51,14 +52,23 @@ public class NoticeService {
 
     @Transactional
     public Notice saveOrUpdateNotice(NoticeDto noticeDto) {
+        Notice notice =  new Notice();
 
-        Optional<Notice> targetNotice = noticeRepository.findById(noticeDto.getId());
-        if(targetNotice.isPresent()){
-            Long targetNoticeId = targetNotice.get().getId();
-            noticeDto.setId(targetNoticeId);
+        if(ObjectUtils.isNotEmpty(noticeDto.getId())) {
+            Optional<Notice> targetNoticeOpt = noticeRepository.findById(noticeDto.getId());
+            if (targetNoticeOpt.isPresent()) {
+                Notice targetNotice = targetNoticeOpt.get();
+                // 버전 관리를 위해 버전 업데이트
+                targetNotice.setVersion(targetNotice.getVersion());
+
+                // 연관된 객체 초기화
+                targetNotice.getAttachments().size();
+
+                // 기존 공지사항으로 설정
+                notice = targetNotice;
+            }
         }
-
-        Notice notice = noticeMapper.toEntity(noticeDto);;
+        notice = noticeMapper.toEntity(noticeDto);
         saveAttachments(notice, noticeDto.getAttachments());
 
         try {
@@ -80,7 +90,9 @@ public class NoticeService {
             throw new RuntimeException("공지사항을 찾을 수 없습니다.");
         }
     }
-    private void saveAttachments(Notice notice, List<MultipartFile> attachments) {
+
+    @Transactional
+    private void  saveAttachments(Notice notice, List<MultipartFile> attachments) {
         if (attachments != null && !attachments.isEmpty()) {
             // 파일 저장 경로 설정
 
@@ -88,11 +100,13 @@ public class NoticeService {
             List<NoticeAttachment> noticeAttachments = attachments.stream().map(file -> {
                 try {
                     Path filePath = Paths.get(fileStorageLocation + file.getOriginalFilename());
+                    Files.createDirectories(filePath.getParent());
                     Files.write(filePath, file.getBytes());
 
                     NoticeAttachment attachment = new NoticeAttachment();
                     attachment.setFileName(file.getOriginalFilename());
                     attachment.setFileType(file.getContentType());
+                    attachment.setFilePath(filePath.toString());
                     attachment.setData(file.getBytes());
                     attachment.setNotice(notice);
                     return attachment;
@@ -104,6 +118,7 @@ public class NoticeService {
             notice.setAttachments(noticeAttachments);
         }
     }
+    @Transactional
     private void deleteAttachments(List<NoticeAttachment> attachments) {
         for (NoticeAttachment attachment : attachments) {
             try {

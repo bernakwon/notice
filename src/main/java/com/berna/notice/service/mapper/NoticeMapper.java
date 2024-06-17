@@ -1,6 +1,6 @@
 package com.berna.notice.service.mapper;
 
-import com.berna.notice.dto.NoticeAttachmentDto;
+
 import com.berna.notice.dto.NoticeDto;
 import com.berna.notice.dto.NoticeResponseDto;
 import com.berna.notice.model.Notice;
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -31,10 +32,19 @@ public class NoticeMapper {
     public Notice toEntity(NoticeDto dto) {
         Notice notice = new Notice();
         notice.setId(dto.getId());
-        notice.setTitle(dto.getTitle());
-        notice.setContent(dto.getContent());
-        notice.setStartDate(LocalDateTime.parse(dto.getStartDate()));
-        notice.setEndDate(LocalDateTime.parse(dto.getEndDate()));
+        Optional.ofNullable(dto.getTitle()).ifPresent(notice::setTitle);
+        Optional.ofNullable(dto.getContent()).ifPresent(notice::setContent);
+        Optional.ofNullable(dto.getAuthor()).ifPresent(notice::setAuthor);
+
+        // startDate 설정
+        Optional.ofNullable(dto.getStartDate())
+                .map(LocalDateTime::parse)
+                .ifPresent(notice::setStartDate);
+
+        // endDate 설정
+        Optional.ofNullable(dto.getEndDate())
+                .map(LocalDateTime::parse)
+                .ifPresent(notice::setEndDate);
         List<NoticeAttachment> attachments = Collections.emptyList();
         // 첨부 파일 정보 설정
         if (dto.getAttachments() != null && !dto.getAttachments().isEmpty()) {
@@ -56,9 +66,7 @@ public class NoticeMapper {
         }
 
 
-        notice.setAttachments(attachments);
 
-        notice.setAttachments(attachments);
         return notice;
     }
 

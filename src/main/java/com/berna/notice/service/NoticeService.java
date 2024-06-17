@@ -1,5 +1,6 @@
 package com.berna.notice.service;
 
+import com.berna.global.error.ErrorCode;
 import com.berna.notice.model.NoticeAttachment;
 import com.berna.notice.service.mapper.NoticeMapper;
 import com.berna.notice.repository.NoticeRepository;
@@ -43,7 +44,7 @@ public class NoticeService {
     public NoticeResponseDto getNoticeById(Long id) {
 
         Notice notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Notice not found with id: " + id));
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("공지사항을 찾을 수 없음: " + id));
 
         notice.setViewCount(notice.getViewCount() + 1);
         noticeRepository.save(notice); // 조회수 증가 후 저장
@@ -55,18 +56,8 @@ public class NoticeService {
         Notice notice =  new Notice();
 
         if(ObjectUtils.isNotEmpty(noticeDto.getId())) {
-            Optional<Notice> targetNoticeOpt = noticeRepository.findById(noticeDto.getId());
-            if (targetNoticeOpt.isPresent()) {
-                Notice targetNotice = targetNoticeOpt.get();
-                // 버전 관리를 위해 버전 업데이트
-                targetNotice.setVersion(targetNotice.getVersion());
-
-                // 연관된 객체 초기화
-                targetNotice.getAttachments().size();
-
-                // 기존 공지사항으로 설정
-                notice = targetNotice;
-            }
+             notice = noticeRepository.findById(noticeDto.getId())
+                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("공지사항을 찾을 수 없음: " + noticeDto.getId()));
         }
         notice = noticeMapper.toEntity(noticeDto);
         saveAttachments(notice, noticeDto.getAttachments());
@@ -76,6 +67,7 @@ public class NoticeService {
         } catch (OptimisticLockException e) {
             throw new RuntimeException("동시 업데이트로 인해 저장을 실패했습니다.", e);
         }
+
     }
 
 

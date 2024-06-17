@@ -62,7 +62,7 @@ public class NoticePagingTest {
         PageRequest pageable = PageRequest.of(0, 10);
         Page<Notice> noticePage = new PageImpl<>(Collections.singletonList(notice), pageable, 1);
         given(noticeRepository.findAll(pageable)).willReturn(noticePage);
-        given(noticeMapper.toDto(notice)).willReturn(noticeResponseDto);
+
 
         // when
         Page<Notice> result = noticeService.getAllNotices(pageable);

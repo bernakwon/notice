@@ -15,7 +15,7 @@ public class GlobalExceptionHandler {
         e.getStackTrace();
         return ErrorResponse.builder()
                 .code(e.getErrorCode().getHttpStatus().value())
-                .message(e.getErrorCode().getHttpStatus().getReasonPhrase()).build();
+                .message(e.getErrorCode().getDetail()).build();
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)

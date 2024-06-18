@@ -31,7 +31,6 @@ public class Notice {
     private LocalDateTime endDate;
 
     @Schema(description = "조회수", example = "0")
-    @Column(name = "view_count")
     private int viewCount = 0;
 
     @Schema(description = "작성자", example = "관리자")
@@ -41,6 +40,9 @@ public class Notice {
     @CreationTimestamp
     private LocalDateTime createdDate;
 
+    @Schema(description = "수정일시", example = "2024-06-16T09:00:00")
+    @CreationTimestamp
+    private LocalDateTime updatedDate;
 
     @Version
     private int version;

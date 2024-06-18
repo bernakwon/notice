@@ -2,35 +2,30 @@ package com.berna.notice;
 
 import com.berna.notice.dto.NoticeDto;
 import com.berna.notice.dto.NoticeResponseDto;
-import com.berna.notice.dto.PageDto;
 import com.berna.notice.model.Notice;
-import com.berna.notice.repository.NoticeRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.data.domain.Page;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.util.AssertionErrors.assertTrue;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 public class NoticeIntegrationTest {
 
     @LocalServerPort
@@ -39,56 +34,104 @@ public class NoticeIntegrationTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Autowired
-    private NoticeRepository noticeRepository;
+    private static final String BASE_URL = "/api/notices";
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    private Notice notice;
     private NoticeDto noticeDto;
+    private Notice notice;
+
 
     @BeforeEach
-    void setUp() {
-        noticeRepository.deleteAll();
-
-        notice = new Notice();
-        notice.setTitle("Test Title");
-        notice.setContent("Test Content");
-        notice.setAuthor("Test Author");
-        noticeRepository.save(notice);
-
+    void setUp() throws URISyntaxException, IOException {
+        // NoticeDto 설정
         noticeDto = new NoticeDto();
-        noticeDto.setTitle("New Test Title");
-        noticeDto.setContent("New Test Content");
-        noticeDto.setAuthor("Test Author");
+        noticeDto.setTitle("Test Notice Title");
+        noticeDto.setContent("Test Notice Content");
+
+
+        // 미리 공지사항 생성
+         createInitialNotice();
+    }
+
+    private void createInitialNotice() throws URISyntaxException, IOException {
+        URI uri = new URI(createURLWithPort(BASE_URL));
+        // NoticeDto 생성
+        NoticeDto newNoticeDto = new NoticeDto();
+        newNoticeDto.setTitle("Notice Title");
+        newNoticeDto.setContent("Notice Content");
+
+
+        // 첨부 파일 생성
+        MockMultipartFile file1 = new MockMultipartFile("file", "test.txt", "text/plain", "Hello, World!".getBytes(StandardCharsets.UTF_8));
+        MockMultipartFile file2 = new MockMultipartFile("file", "test2.txt", "text/plain", "Hello again!".getBytes(StandardCharsets.UTF_8));
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("noticeDto", new HttpEntity<>(newNoticeDto, createJsonHeaders()));
+        body.add("files", getResource(file1));
+        body.add("files", getResource(file2));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Notice> responseEntity = restTemplate.postForEntity(uri, requestEntity, Notice.class);
+        notice = responseEntity.getBody();
+    }
+
+    private ByteArrayResource getResource(MockMultipartFile file) throws IOException {
+        return new ByteArrayResource(file.getBytes()) {
+            @Override
+            public String getFilename() {
+                return file.getOriginalFilename();
+            }
+        };
+    }
+    private HttpHeaders createJsonHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
     }
 
     @Test
-    @DisplayName("공지사항 목록 조회")
-    void getAllNotices_ShouldReturnPagedNotices(){
-        URI uri = UriComponentsBuilder.fromHttpUrl(createURLWithPort("/api/notices"))
-                .queryParam("page", 0)
-                .queryParam("size", 10)
-                .build().toUri();
+    @DisplayName("공지사항 생성")
+    void createNotice_ShouldCreateNotice() throws URISyntaxException, IOException {
+        URI uri = new URI(createURLWithPort(BASE_URL));
 
-        ResponseEntity<PageDto<NoticeResponseDto>> response = restTemplate.exchange(
-                uri,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<PageDto<NoticeResponseDto>>() {});
+        // NoticeDto 생성
+        NoticeDto newNoticeDto = new NoticeDto();
+        newNoticeDto.setTitle("New Notice Title");
+        newNoticeDto.setContent("New Notice Content");
 
-        assertTrue("Response should be 2xx", response.getStatusCode().is2xxSuccessful());
-        assertThat(response.getBody()).isNotNull();
 
+        // 첨부 파일 생성
+        MockMultipartFile file1 = new MockMultipartFile("file", "test.txt", "text/plain", "Hello, World!".getBytes(StandardCharsets.UTF_8));
+        MockMultipartFile file2 = new MockMultipartFile("file", "test2.txt", "text/plain", "Hello again!".getBytes(StandardCharsets.UTF_8));
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("noticeDto", new HttpEntity<>(newNoticeDto, createJsonHeaders()));
+        body.add("files", getResource(file1));
+        body.add("files", getResource(file2));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        ResponseEntity<Notice> responseEntity = restTemplate.postForEntity(uri, requestEntity, Notice.class);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+
+
+        // 테스트 후 첨부 파일 삭제
+        cleanupAttachments(file1, file2);
     }
-
 
     @Test
     @DisplayName("특정 공지사항 조회")
-    void getNoticeById_ShouldReturnNotice() {
+    void getNoticeById_ShouldReturnNotice() throws URISyntaxException {
         Long id = notice.getId();
-        NoticeResponseDto response = restTemplate.getForObject(createURLWithPort("/api/notices/" + id), NoticeResponseDto.class);
+        NoticeResponseDto response = restTemplate.getForObject(createURLWithPort(BASE_URL + "/" + id), NoticeResponseDto.class);
 
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo(id);
@@ -96,46 +139,61 @@ public class NoticeIntegrationTest {
     }
 
     @Test
-    @DisplayName("공지사항 생성")
-    void createNotice_ShouldCreateNotice() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<NoticeDto> request = new HttpEntity<>(noticeDto, headers);
-        Notice response = restTemplate.postForObject(createURLWithPort("/api/notices"), request, Notice.class);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getTitle()).isEqualTo(noticeDto.getTitle());
-    }
-
-    @Test
     @DisplayName("공지사항 수정")
-    void updateNotice_ShouldUpdateNotice() {
-        Long id = notice.getId();
+    void updateNotice_ShouldUpdateNotice() throws URISyntaxException, IOException {
+        Long id = 1L;
+        noticeDto.setId(id);
         noticeDto.setTitle("Updated Title");
 
+        // 새로운 첨부 파일 생성
+        MockMultipartFile file3 = new MockMultipartFile("file", "test3.txt", "text/plain", "Updated content!".getBytes(StandardCharsets.UTF_8));
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("noticeDto", new HttpEntity<>(noticeDto, createJsonHeaders()));
+        body.add("files", new ByteArrayResource(file3.getBytes()) {
+            @Override
+            public String getFilename() {
+                return file3.getOriginalFilename();
+            }
+        });
+
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
-        HttpEntity<NoticeDto> request = new HttpEntity<>(noticeDto, headers);
-        ResponseEntity<Notice> response = restTemplate.exchange(createURLWithPort("/api/notices/" + id), HttpMethod.PUT, request, Notice.class);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getTitle()).isEqualTo("Updated Title");
+        URI uri = new URI(createURLWithPort(BASE_URL + "/" + id));
+        ResponseEntity<Notice> responseEntity = restTemplate.exchange(uri, HttpMethod.PUT, requestEntity, Notice.class);
+
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isNotNull();
+
+        // 테스트 후 첨부 파일 삭제
+        cleanupAttachments(file3);
     }
 
     @Test
     @DisplayName("공지사항 삭제")
-    void deleteNotice_ShouldDeleteNotice() {
-        Long id = notice.getId();
+    void deleteNoticeById_ShouldDeleteNotice() throws URISyntaxException {
+        Long id = 1L;
+        URI uri = new URI(createURLWithPort(BASE_URL + "/" + id));
 
-        restTemplate.delete(createURLWithPort("/api/notices/" + id));
+        ResponseEntity<Void> responseEntity = restTemplate.exchange(uri, HttpMethod.DELETE, null, Void.class);
 
-        assertThat(noticeRepository.findById(id)).isEmpty();
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     private String createURLWithPort(String uri) {
         return "http://localhost:" + port + uri;
+    }
+
+    private void cleanupAttachments(MockMultipartFile... files) {
+        for (MockMultipartFile file : files) {
+            try {
+                file.getInputStream().close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

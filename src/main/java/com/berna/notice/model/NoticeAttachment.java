@@ -35,9 +35,10 @@ public class NoticeAttachment {
     @JoinColumn(name = "notice_id")
     private Notice notice;
 
+    @Schema(description = "생성일시")
     @CreationTimestamp
     private LocalDateTime createdDate;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedDate;
+
+
 }

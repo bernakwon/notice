@@ -1,8 +1,9 @@
+
 공지사항 API
 programed By Hyeran 
 ==================================
 ## Spec
-- Spring boot 3.1.2
+- Spring boot 3.1.5
 - Spring data Jpa
 - lombok
 - H2-database
@@ -35,31 +36,34 @@ programed By Hyeran
 
 #### 테이블 구조
 
-| 컬럼 이름     | 데이터 타입     | 설명                  | 제약 조건                       |
-|---------------|-----------------|-----------------------|---------------------------------|
-| id            | BIGINT          | 공지사항의 고유 식별자 | PRIMARY KEY, AUTO_INCREMENT     |
-| title         | VARCHAR(255)    | 공지사항의 제목        | NOT NULL                        |
-| content       | TEXT            | 공지사항의 내용        |                                 |
-| start_date    | TIMESTAMP       | 공지사항의 시작 날짜   |                                 |
-| end_date      | TIMESTAMP       | 공지사항의 종료 날짜   |                                 |
-| view_count    | INT             | 공지사항의 조회수      | DEFAULT 0                       |
-| author        | VARCHAR(255)    | 공지사항 작성자의 이름 |                                 |
-| created_date  | TIMESTAMP       | 공지사항이 생성된 날짜 | DEFAULT CURRENT_TIMESTAMP       |
-| version       | BIGINT          | 동시성 제어를 위한 버전 |                                 |
+| 컬럼 이름        | 데이터 타입     | 설명   | 제약 조건                       |
+|--------------|-----------------|------|---------------------------------|
+| id           | BIGINT          | id   | PRIMARY KEY, AUTO_INCREMENT     |
+| title        | VARCHAR(255)    | 제목   | NOT NULL                        |
+| content      | TEXT            | 내용   |                                 |
+| start_date   | TIMESTAMP       | 시작일시 |                                 |
+| end_date     | TIMESTAMP       | 종료일시 |                                 |
+| view_count   | INT             | 조회수  | DEFAULT 0                       |
+| author       | VARCHAR(255)    | 작성자  |                                 |
+| created_date | TIMESTAMP       | 생성일시 | DEFAULT CURRENT_TIMESTAMP       |
+| updated_date | TIMESTAMP       | 수정일시 | DEFAULT CURRENT_TIMESTAMP       |
+| version      | BIGINT          | 버전   |                                 |
 
 ### Notice_Attachment 테이블 
 
-`NoticeAttachment` 테이블은 공지사항에 첨부된 파일에 대한 정보를 저장합니다. 각 첨부파일은 하나의 공지사항(`Notice`)에 속합니다.
+`Notice_Attachment` 테이블은 공지사항에 첨부된 파일에 대한 정보를 저장합니다. 각 첨부파일은 하나의 공지사항(`Notice`)에 속합니다.
 
 #### 테이블 구조
 
-| 컬럼 이름    | 데이터 타입     | 설명                   | 제약 조건                       |
-|--------------|-----------------|------------------------|---------------------------------|
-| id           | BIGINT          | 첨부파일의 고유 식별자  | PRIMARY KEY, AUTO_INCREMENT     |
-| file_name    | VARCHAR(255)    | 첨부파일의 이름         | NOT NULL                        |
-| file_type    | VARCHAR(255)    | 첨부파일의 MIME 타입    | NOT NULL                        |
-| data         | LONGBLOB        | 첨부파일의 실제 데이터  | NOT NULL                        |
-| notice_id    | BIGINT          | 첨부파일이 속한 공지사항 | FOREIGN KEY                     |
+| 컬럼 이름     | 데이터 타입     | 설명       | 제약 조건                  |
+|-----------|-----------------|----------|----------------------------|
+| id        | BIGINT          | 첨부 파일 ID | PRIMARY KEY, AUTO_INCREMENT |
+| file_name | VARCHAR(255)    | 파일 이름    | NOT NULL                   |
+| file_type | VARCHAR(255)    | 파일 타입    |                   |
+| file_path | VARCHAR(255)    | 파일 경로    |                   |
+| data      | LONGBLOB        | 파일 데이터   |                   |
+created_date | TIMESTAMP          | 생성일시     | DEFAULT CURRENT_TIMESTAMP
+| notice_id | BIGINT          | 공지사항 ID | FOREIGN KEY                |
 
 #####  연관관계
 
@@ -75,9 +79,13 @@ programed By Hyeran
        3. 기본 JPARepository가 제공하는 Paging 활용 
        4. version 추가하여 동시성 제어
        5. 공지사항 조회시 조회수 증가
-       6. 파일 업로드를 포함한 공지 저장/수정
+       6. 파일 업로드를 포함한 공지 저장/수정, 
+       7. JUnit5를 활용한 테스트 코드 작성
+       8. Swagger를 활용한 API 문서화
+       9. lombok을 사용하여 getter/setter, 생성자, toString 자동 생성
+       10. ExceptionHandler를 통한 예외 처리
 
-     
+
 ---------------------------------------------------
 
    #### h2 console
@@ -89,4 +97,13 @@ programed By Hyeran
   
 ---------------------------------------------  
 
-  
+  ### 실행방법
+
+    1. git clone
+    2. NoticeApplication.main() Run 
+    3. localhost:8080 접속
+    4. swagger로 api 확인
+    5. h2-console로 db 확인
+    6. 테스트 코드 실행
+    7. 기능 테스트
+

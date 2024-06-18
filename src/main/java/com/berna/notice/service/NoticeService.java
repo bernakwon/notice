@@ -1,7 +1,9 @@
 package com.berna.notice.service;
 
+import com.berna.global.error.CommonException;
 import com.berna.global.error.ErrorCode;
 import com.berna.notice.model.NoticeAttachment;
+import com.berna.notice.repository.NoticeAttachmentRepository;
 import com.berna.notice.service.mapper.NoticeMapper;
 import com.berna.notice.repository.NoticeRepository;
 import com.berna.notice.dto.NoticeDto;
@@ -21,6 +23,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,6 +36,8 @@ public class NoticeService {
 
     private final NoticeRepository noticeRepository;
 
+    private final NoticeAttachmentRepository noticeAttachmentRepository;
+
     private final NoticeMapper noticeMapper;
 
     private final String fileStorageLocation = "C:\\fileStorage\\notice\\";
@@ -40,11 +46,12 @@ public class NoticeService {
     public Page<Notice> getAllNotices(PageRequest pageRequest) {
         return noticeRepository.findAll(pageRequest);
     }
+
     @Transactional
     public NoticeResponseDto getNoticeById(Long id) {
 
         Notice notice = noticeRepository.findById(id)
-                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("공지사항을 찾을 수 없음: " + id));
+                .orElseThrow(() -> new CommonException(ErrorCode.NOTICE_NOT_FOUND));
 
         notice.setViewCount(notice.getViewCount() + 1);
         noticeRepository.save(notice); // 조회수 증가 후 저장
@@ -53,19 +60,27 @@ public class NoticeService {
 
     @Transactional
     public Notice saveOrUpdateNotice(NoticeDto noticeDto) {
-        Notice notice =  new Notice();
+        Notice notice;
 
-        if(ObjectUtils.isNotEmpty(noticeDto.getId())) {
-             notice = noticeRepository.findById(noticeDto.getId())
-                    .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("공지사항을 찾을 수 없음: " + noticeDto.getId()));
+        // 공지사항 ID가 존재하면 기존 공지사항을 업데이트
+        if (noticeDto.getId() != null) {
+            notice = noticeRepository.findById(noticeDto.getId())
+                    .orElseThrow(() -> new CommonException(ErrorCode.NOTICE_NOT_FOUND));
+            noticeMapper.updateEntity(noticeDto, notice);
+
+        } else {
+            notice = noticeMapper.toEntity(noticeDto);
         }
-        notice = noticeMapper.toEntity(noticeDto);
-        saveAttachments(notice, noticeDto.getAttachments());
-
+        List<NoticeAttachment> attachmentsToDelete = saveAttachments(notice, noticeDto.getAttachments());
         try {
-            return noticeRepository.save(notice);
+            Notice savedNotice = noticeRepository.save(notice);
+            // 데이터베이스에서 삭제된 첨부 파일 삭제
+            if (!attachmentsToDelete.isEmpty()) {
+                noticeAttachmentRepository.deleteAll(attachmentsToDelete);
+            }
+            return savedNotice;
         } catch (OptimisticLockException e) {
-            throw new RuntimeException("동시 업데이트로 인해 저장을 실패했습니다.", e);
+            throw new CommonException(ErrorCode.SIMULTANEOUS_UPDATE);
         }
 
     }
@@ -76,20 +91,24 @@ public class NoticeService {
         Optional<Notice> noticeOptional = noticeRepository.findById(id);
         if (noticeOptional.isPresent()) {
             Notice notice = noticeOptional.get();
-            deleteAttachments(notice.getAttachments());
+            if (!notice.getAttachments().isEmpty()) {
+                deleteAttachments(notice.getAttachments());
+                noticeAttachmentRepository.deleteAll(notice.getAttachments());
+            }
             noticeRepository.delete(notice);
         } else {
-            throw new RuntimeException("공지사항을 찾을 수 없습니다.");
+            throw new CommonException(ErrorCode.NOTICE_NOT_FOUND);
         }
     }
 
     @Transactional
-    private void  saveAttachments(Notice notice, List<MultipartFile> attachments) {
+    public List<NoticeAttachment> saveAttachments(Notice notice, List<MultipartFile> attachments) {
+        List<NoticeAttachment> newAttachments = new ArrayList<>();
         if (attachments != null && !attachments.isEmpty()) {
             // 파일 저장 경로 설정
 
             // 각 파일을 저장하고 NoticeAttachment 생성 후 연결
-            List<NoticeAttachment> noticeAttachments = attachments.stream().map(file -> {
+            newAttachments = attachments.stream().map(file -> {
                 try {
                     Path filePath = Paths.get(fileStorageLocation + file.getOriginalFilename());
                     Files.createDirectories(filePath.getParent());
@@ -103,20 +122,36 @@ public class NoticeService {
                     attachment.setNotice(notice);
                     return attachment;
                 } catch (IOException e) {
-                    throw new RuntimeException("파일 저장 실패", e);
+                    throw new CommonException(ErrorCode.FAIL_FILE_SAVE);
                 }
             }).collect(Collectors.toList());
 
-            notice.setAttachments(noticeAttachments);
+
         }
+        // 기존 첨부 파일과 새로운 첨부 파일을 비교하여 삭제된 파일들을 제거
+        List<NoticeAttachment> currentAttachments = notice.getAttachments();
+        List<NoticeAttachment> attachmentsToDelete = new ArrayList<>();
+        if (currentAttachments != null) {
+            List<NoticeAttachment> finalNewAttachments = newAttachments;
+            attachmentsToDelete = currentAttachments.stream()
+                    .filter(existingAttachment ->
+                            finalNewAttachments.stream().noneMatch(newAttachment ->
+                                    newAttachment.getFileName().equals(existingAttachment.getFileName())))
+                    .collect(Collectors.toList());
+            currentAttachments.removeAll(attachmentsToDelete);
+        }
+        // 새로운 첨부 파일 리스트 설정
+        notice.setAttachments(newAttachments);
+        return attachmentsToDelete;
     }
+
     @Transactional
-    private void deleteAttachments(List<NoticeAttachment> attachments) {
+    void deleteAttachments(List<NoticeAttachment> attachments) {
         for (NoticeAttachment attachment : attachments) {
             try {
                 Files.deleteIfExists(Paths.get(attachment.getFilePath()));
             } catch (IOException e) {
-                throw new RuntimeException("파일 삭제 실패", e);
+                throw new CommonException(ErrorCode.FAIL_FILE_DELETE);
             }
         }
     }

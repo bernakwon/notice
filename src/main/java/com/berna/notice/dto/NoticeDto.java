@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 public class NoticeDto {
-    @Schema(description = "공지사항 ID", example = "1")
+    //아이디
     private Long id;
 
     @Schema(description = "제목", example = "공지사항 제목")
@@ -27,7 +27,7 @@ public class NoticeDto {
     @Schema(description = "작성자", example = "관리자")
     private String author;
 
-    @Schema(description = "첨부파일 목록")
+   //첨부파일 목록
     private List<MultipartFile> attachments;
 
 

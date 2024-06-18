@@ -8,6 +8,7 @@ import java.util.Optional;
 import com.berna.notice.dto.NoticeDto;
 import com.berna.notice.dto.NoticeResponseDto;
 import com.berna.notice.model.Notice;
+import com.berna.notice.repository.NoticeAttachmentRepository;
 import com.berna.notice.repository.NoticeRepository;
 import com.berna.notice.service.NoticeService;
 import com.berna.notice.service.mapper.NoticeMapper;
@@ -31,6 +32,8 @@ public class NoticeViewTest {
     @Mock
     private NoticeRepository noticeRepository;
 
+    @Mock
+    private NoticeAttachmentRepository noticeAttachmentRepository;
     @InjectMocks
     private NoticeService noticeService;
 

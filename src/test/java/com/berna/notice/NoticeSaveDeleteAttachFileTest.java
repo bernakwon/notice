@@ -23,9 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -66,12 +64,14 @@ public class NoticeSaveDeleteAttachFileTest {
         notice.setId(1L);
         notice.setTitle("Test Title");
         notice.setContent("Test Content");
-
+        String fileName =   UUID.nameUUIDFromBytes("test.txt".getBytes()).toString();
+        String extension = Objects.requireNonNull("test.txt").substring("test.txt".lastIndexOf("."));
         NoticeAttachment attachment = new NoticeAttachment();
-        attachment.setFileName("test.txt");
+        attachment.setFileName(fileName);
+        attachment.setOriginalFileName("test.txt");
         attachment.setFileType("text/plain");
         attachment.setData("some text".getBytes());
-        attachment.setFilePath("C:\\fileStorage\\notice\\");
+        attachment.setFilePath("C:\\fileStorage\\notice\\"+fileName+extension);
 
         notice.setAttachments(Collections.singletonList(attachment));
 
@@ -94,9 +94,10 @@ public class NoticeSaveDeleteAttachFileTest {
         assertThat(result).isNotNull();
         assertThat(result.getTitle()).isEqualTo("Test Title");
         verify(noticeRepository, times(1)).save(any(Notice.class));
-
+        String fileName =   UUID.nameUUIDFromBytes("test.txt".getBytes()).toString();
+        String extension = Objects.requireNonNull("test.txt").substring("test.txt".lastIndexOf("."));
         // 파일이 실제로 저장되었는지 확인
-        Path filePath = Paths.get("C:\\fileStorage\\notice", "test.txt");
+        Path filePath = Paths.get("C:\\fileStorage\\notice", fileName+extension);
         assertThat(Files.exists(filePath)).isTrue();
 
         // 테스트 후 파일 삭제
@@ -111,12 +112,14 @@ public class NoticeSaveDeleteAttachFileTest {
         Long noticeId = 1L;
 
         NoticeAttachment attachment = new NoticeAttachment();
-        attachment.setFileName("test.txt");
-        attachment.setFilePath("C:\\fileStorage\\notice\\test.txt");
+        String fileName =   UUID.nameUUIDFromBytes("test.txt".getBytes()).toString();
+        String extension = Objects.requireNonNull("test.txt").substring("test.txt".lastIndexOf("."));
+        attachment.setFileName(fileName);
+        attachment.setFilePath("C:\\fileStorage\\notice\\"+fileName+extension);
 
         notice.setAttachments(Collections.singletonList(attachment));
 
-        Path filePath = Paths.get("C:\\fileStorage\\notice", "test.txt");
+        Path filePath = Paths.get("C:\\fileStorage\\notice", fileName+extension);
         // 파일이 존재하지 않으면 파일 생성
         if(!Files.exists(filePath)) {
             Files.createFile(filePath); // 테스트 파일 생성

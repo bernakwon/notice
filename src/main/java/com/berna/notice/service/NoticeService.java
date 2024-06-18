@@ -53,11 +53,11 @@ public class NoticeService {
         notice.setViewCount(notice.getViewCount() + 1);
 
 
-        Notice savedNotice =  noticeRepository.save(notice); // 조회수 증가 후 저장
+        noticeRepository.save(notice); // 조회수 증가 후 저장
         List<NoticeAttachment> attachments = noticeAttachmentRepository.findByNoticeId(id);
 
-        savedNotice.setAttachments(attachments);
-        return noticeMapper.toResponseDto(savedNotice);
+        notice.setAttachments(attachments);
+        return noticeMapper.toResponseDto(notice);
     }
 
     @Transactional

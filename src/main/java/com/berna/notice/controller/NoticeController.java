@@ -30,41 +30,23 @@ public class NoticeController {
     @Autowired
     private NoticeService noticeService;
     @Operation(summary = "모든 공지사항 조회", description = "모든 공지사항을 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공적으로 조회됨",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = NoticeResponseDto.class))}),
-            @ApiResponse(responseCode = "500", description = "서버 오류",
-                    content = @Content)})
     @GetMapping
     public PageDto<NoticeResponseDto> getAllNotices(@RequestParam int page, @RequestParam int size) {
         Page<Notice> noticePage = noticeService.getAllNotices(PageRequest.of(page, size));
         List<NoticeResponseDto> content = noticePage.getContent().stream()
                 .map(notice -> new NoticeResponseDto(notice.getId(), notice.getTitle(), notice.getContent(),
-                        notice.getCreatedDate(), notice.getViewCount(), notice.getAuthor()))
+                        notice.getCreatedDate(), notice.getViewCount(), notice.getAuthor() ))
                 .collect(Collectors.toList());
         return new PageDto<>(noticePage.getNumber(), noticePage.getTotalPages(), noticePage.getTotalElements(), noticePage.getSize(), content);
     }
 
     @Operation(summary = "특정 공지사항 조회", description = "ID로 특정 공지사항을 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공적으로 조회됨",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = NoticeResponseDto.class))}),
-            @ApiResponse(responseCode = "404", description = "공지사항을 찾을 수 없음",
-                    content = @Content)})
     @GetMapping("/{id}")
     public NoticeResponseDto getNoticeById(@PathVariable Long id) {
         return noticeService.getNoticeById(id);
     }
 
     @Operation(summary = "공지사항 생성", description = "새로운 공지사항을 생성합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "성공적으로 생성됨",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Notice.class))}),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청",
-                    content = @Content)})
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Notice createNotice(@RequestPart("noticeDto") NoticeDto noticeDto,  @RequestPart(value = "files", required = false) List<MultipartFile> files) {
         noticeDto.setAttachments(files);
@@ -72,12 +54,6 @@ public class NoticeController {
     }
 
     @Operation(summary = "공지사항 업데이트", description = "ID로 기존 공지사항을 업데이트합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "성공적으로 업데이트됨",
-                    content = {@Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Notice.class))}),
-            @ApiResponse(responseCode = "404", description = "공지사항을 찾을 수 없음",
-                    content = @Content)})
     @PutMapping(value = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Notice updateNotice(@PathVariable Long id, @RequestPart("noticeDto") NoticeDto noticeDto,  @RequestPart(value = "files", required = false) List<MultipartFile> files) {
         noticeDto.setId(id);

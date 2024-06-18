@@ -17,8 +17,11 @@ public class NoticeAttachment {
     @Schema(description = "첨부 파일 ID", example = "1")
     private Long id;
 
-    @Schema(description = "파일 이름", example = "example.pdf")
+    @Schema(description = "저장 파일 이름", example = "1_example.pdf")
     private String fileName;
+
+    @Schema(description = "원래 파일 이름", example = "example.pdf")
+    private String originalFileName;
 
     @Schema(description = "파일 타입", example = "application/pdf")
     private String fileType;

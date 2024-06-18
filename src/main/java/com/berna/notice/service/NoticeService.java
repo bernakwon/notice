@@ -23,10 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -54,8 +51,13 @@ public class NoticeService {
                 .orElseThrow(() -> new CommonException(ErrorCode.NOTICE_NOT_FOUND));
 
         notice.setViewCount(notice.getViewCount() + 1);
-        noticeRepository.save(notice); // 조회수 증가 후 저장
-        return noticeMapper.toResponseDto(notice);
+
+
+        Notice savedNotice =  noticeRepository.save(notice); // 조회수 증가 후 저장
+        List<NoticeAttachment> attachments = noticeAttachmentRepository.findByNoticeId(id);
+
+        savedNotice.setAttachments(attachments);
+        return noticeMapper.toResponseDto(savedNotice);
     }
 
     @Transactional
@@ -105,17 +107,18 @@ public class NoticeService {
     public List<NoticeAttachment> saveAttachments(Notice notice, List<MultipartFile> attachments) {
         List<NoticeAttachment> newAttachments = new ArrayList<>();
         if (attachments != null && !attachments.isEmpty()) {
-            // 파일 저장 경로 설정
 
-            // 각 파일을 저장하고 NoticeAttachment 생성 후 연결
             newAttachments = attachments.stream().map(file -> {
                 try {
-                    Path filePath = Paths.get(fileStorageLocation + file.getOriginalFilename());
+                    String fileName =   UUID.nameUUIDFromBytes(file.getOriginalFilename().getBytes()).toString();
+                    String extension = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
+                    Path filePath = Paths.get(fileStorageLocation + fileName+extension);
                     Files.createDirectories(filePath.getParent());
                     Files.write(filePath, file.getBytes());
 
                     NoticeAttachment attachment = new NoticeAttachment();
-                    attachment.setFileName(file.getOriginalFilename());
+                    attachment.setFileName(fileName);
+                    attachment.setOriginalFileName(file.getOriginalFilename());
                     attachment.setFileType(file.getContentType());
                     attachment.setFilePath(filePath.toString());
                     attachment.setData(file.getBytes());

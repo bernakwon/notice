@@ -26,7 +26,13 @@ public class NoticeMapper {
         dto.setCreatedDate(notice.getCreatedDate());
         dto.setViewCount(notice.getViewCount());
         dto.setAuthor(notice.getAuthor());
-
+        //dto에 첨부파일명 목록
+        List<String> attachmentNames = Optional.ofNullable(notice.getAttachments())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(NoticeAttachment::getOriginalFileName)
+                .collect(Collectors.toList());
+        dto.setAttachmentNames(attachmentNames);
         return dto;
     }
 

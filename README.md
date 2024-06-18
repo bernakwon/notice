@@ -58,12 +58,13 @@ programed By Hyeran
 | 컬럼 이름     | 데이터 타입     | 설명       | 제약 조건                  |
 |-----------|-----------------|----------|----------------------------|
 | id        | BIGINT          | 첨부 파일 ID | PRIMARY KEY, AUTO_INCREMENT |
-| file_name | VARCHAR(255)    | 파일 이름    | NOT NULL                   |
+| file_name | VARCHAR(255)    | 저장 파일 이름 | NOT NULL        <           |
+original_file_name | VARCHAR(255)    | 원래 파일 이름 | NOT NULL
 | file_type | VARCHAR(255)    | 파일 타입    |                   |
 | file_path | VARCHAR(255)    | 파일 경로    |                   |
 | data      | LONGBLOB        | 파일 데이터   |                   |
 created_date | TIMESTAMP          | 생성일시     | DEFAULT CURRENT_TIMESTAMP
-| notice_id | BIGINT          | 공지사항 ID | FOREIGN KEY                |
+| notice_id | BIGINT          | 공지사항 ID  | FOREIGN KEY                |
 
 #####  연관관계
 
@@ -84,6 +85,7 @@ created_date | TIMESTAMP          | 생성일시     | DEFAULT CURRENT_TIMESTAMP
        8. Swagger를 활용한 API 문서화
        9. lombok을 사용하여 getter/setter, 생성자, toString 자동 생성
        10. ExceptionHandler를 통한 예외 처리
+       11. 공지사항 조회시 첨부파일 이름 목록 추가 반환
 
 
 ---------------------------------------------------

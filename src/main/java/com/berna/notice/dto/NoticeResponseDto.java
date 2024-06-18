@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -30,4 +31,15 @@ public class NoticeResponseDto {
     @Schema(description = "작성자", example = "관리자")
     private String author;
 
+    @Schema(description = "첨부파일명 목록")
+    private List<String> attachmentNames;
+
+    public NoticeResponseDto(Long id, String title, String content, LocalDateTime createdDate, int viewCount, String author) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.createdDate = createdDate;
+        this.viewCount = viewCount;
+        this.author = author;
+    }
 }
